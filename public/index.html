@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Shop premium Takatso photo prints and keepsakes." />
+    <title>Takatso | Photo Prints</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/styles.css" />
+    <script src="/app.js" defer></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container nav-wrap">
+        <a class="brand" href="#home" aria-label="Takatso home"><span class="brand-mark">T</span><span>Takatso</span></a>
+        <nav class="main-nav" aria-label="Main navigation"><a href="#products">Prints</a><a href="#checkout">Your order</a></nav>
+        <button class="nav-cart" id="cartButton" type="button">Cart <span id="cartCount">0</span></button>
+      </div>
+    </header>
+    <main id="home">
+      <section class="hero">
+        <div class="container hero-grid">
+          <div class="hero-copy">
+            <p class="eyebrow">Turn memories into keepsakes</p>
+            <h1>Your favourite moments, made to last.</h1>
+            <p class="hero-text">Premium photo prints with vibrant colour, crisp detail, and timeless style. Choose a print, add it to your cart, and check out securely.</p>
+            <div class="cta-row"><a href="#products" class="primary-btn">Shop photo prints</a><a href="#checkout" class="secondary-btn">View cart</a></div>
+            <ul class="features-list"><li>Premium print quality</li><li>South African rand pricing</li><li>Secure hosted payment</li></ul>
+          </div>
+          <div class="hero-visual" aria-label="Photo print collection">
+            <div class="photo-card card-main"><div class="photo photo-1"></div><div class="photo-details"><strong>Family memories</strong><span>12 × 18 premium print</span></div></div>
+            <div class="photo-card card-float"><div class="photo photo-2"></div><div class="photo-details"><strong>Travel story</strong><span>8 × 10 classic</span></div></div>
+          </div>
+        </div>
+      </section>
+      <section id="products" class="products-section">
+        <div class="container section-head"><div><p class="eyebrow">The collection</p><h2>Prints made for your space</h2></div></div>
+        <div class="container product-grid" id="productGrid"></div>
+      </section>
+      <section class="checkout-section" id="checkout">
+        <div class="container checkout-grid">
+          <div class="cart-panel">
+            <div class="panel-header"><h2>Your cart</h2><strong id="cartTotalLabel">R0.00</strong></div>
+            <div id="cartItems" class="cart-items"></div>
+            <div class="cart-summary"><div><span>Subtotal</span><strong id="subtotalValue">R0.00</strong></div><div><span>Delivery</span><strong id="shippingValue">R0.00</strong></div><div class="grand-total"><span>Total</span><strong id="totalValue">R0.00</strong></div></div>
+            <p class="small-note">Delivery is a flat R95.00 per order.</p>
+          </div>
+          <form id="checkoutForm" class="checkout-form">
+            <h2>Delivery details</h2>
+            <p class="form-intro">You’ll be redirected to Paystack’s secure checkout to complete payment.</p>
+            <label>Full name<input type="text" id="customerName" name="name" autocomplete="name" maxlength="120" required /></label>
+            <label>Email address<input type="email" id="customerEmail" name="email" autocomplete="email" maxlength="254" required /></label>
+            <label>Delivery address<textarea id="customerAddress" name="address" autocomplete="street-address" rows="3" maxlength="500" required></textarea></label>
+            <button type="submit" id="checkoutButton" class="checkout-btn">Continue to secure payment</button>
+            <p id="formMessage" class="form-message" role="status" aria-live="polite"></p>
+            <p class="small-note">Payments are verified by the server. Your card details are handled by Paystack, not stored by Takatso.</p>
+          </form>
+        </div>
+      </section>
+    </main>
+    <footer class="site-footer"><div class="container footer-row"><span>© 2026 Takatso</span><span>Photo prints made with care</span></div></footer>
+  </body>
+</html>
