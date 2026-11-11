@@ -1,0 +1,541 @@
+const products = [
+  {
+    id: 1,
+    name: 'Classic 8x10 Print',
+    size: '8x10 in',
+    price: 240,
+    description: 'A crisp, high-definition print for cherished family and travel moments.',
+    imageClass: 'product-photo product-one',
+  },
+  {
+    id: 2,
+    name: 'Gallery 12x18 Print',
+    size: '12x18 in',
+    price: 390,
+    description: 'Perfect for statement walls and standout portraits.',
+    imageClass: 'product-photo product-two',
+  },
+  {
+    id: 3,
+    name: 'Premium 16x20 Framed',
+    size: '16x20 in',
+    price: 690,
+    description: 'Elegant framing for living rooms, gifts, and keepsakes.',
+    imageClass: 'product-photo product-three',
+  },
+  {
+    id: 4,
+    name: 'Family Collage Set',
+    size: '4 prints',
+    price: 890,
+    description: 'A curated collection for milestones, weddings, and family memories.',
+    imageClass: 'product-photo product-four',
+  },
+];
+
+const currencyFormatter = new Intl.NumberFormat('en-ZA', {
+  style: 'currency',
+  currency: 'ZAR',
+  minimumFractionDigits: 2,
+});
+
+const cartKey = 'takatso-cart';
+
+const productGrid = document.getElementById('productGrid');
+const cartItems = document.getElementById('cartItems');
+const cartCount = document.getElementById('cartCount');
+const subtotalValue = document.getElementById('subtotalValue');
+const shippingValue = document.getElementById('shippingValue');
+const totalValue = document.getElementById('totalValue');
+const cartTotalLabel = document.getElementById('cartTotalLabel');
+const checkoutForm = document.getElementById('checkoutForm');
+const formMessage = document.getElementById('formMessage');
+
+function getCart() {
+  const savedCart = JSON.parse(localStorage.getItem(cartKey) || '[]');
+  return savedCart;
+}
+
+function saveCart(cart) {
+  localStorage.setItem(cartKey, JSON.stringify(cart));
+}
+
+function addToCart(productId) {
+  const cart = getCart();
+  const item = cart.find((entry) => entry.id === productId);
+
+  if (item) {
+    item.quantity += 1;
+  } else {
+    cart.push({ id: productId, quantity: 1 });
+  }
+
+  saveCart(cart);
+  renderProducts();
+  renderCart();
+}
+
+function updateQuantity(productId, change) {
+  const cart = getCart();
+  const item = cart.find((entry) => entry.id === productId);
+
+  if (!item) return;
+
+  item.quantity += change;
+
+  if (item.quantity <= 0) {
+    const filtered = cart.filter((entry) => entry.id !== productId);
+    saveCart(filtered);
+  } else {
+    saveCart(cart);
+  }
+
+  renderCart();
+  renderProducts();
+}
+
+function renderProducts() {
+  productGrid.innerHTML = products
+    .map((product) => {
+      const cart = getCart();
+      const existing = cart.find((entry) => entry.id === product.id);
+      const quantity = existing ? existing.quantity : 0;
+
+      return `
+        <article class="product-card">
+          <div class="${product.imageClass}"></div>
+          <div class="product-info">
+            <div class="product-topline">
+              <h3>${product.name}</h3>
+              <span class="product-price">${currencyFormatter.format(product.price / 100)}</span>
+            </div>
+            <p class="product-size">${product.size}</p>
+            <p class="product-description">${product.description}</p>
+            <div class="product-actions">
+              <button class="add-btn" data-id="${product.id}">Add to cart</button>
+              <span class="quantity-badge">${quantity} in cart</span>
+            </div>
+          </div>
+        </article>
+      `;
+    })
+    .join('');
+
+  document.querySelectorAll('.add-btn').forEach((button) => {
+    button.addEventListener('click', () => addToCart(Number(button.dataset.id)));
+  });
+}
+
+function getCartDetails() {
+  const cart = getCart();
+  const items = cart
+    .map((entry) => {
+      const product = products.find((item) => item.id === entry.id);
+      if (!product) return null;
+      return { ...product, quantity: entry.quantity };
+    })
+    .filter(Boolean);
+
+  const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const shipping = items.length ? 950 : 0;
+  const total = subtotal + shipping;
+
+  return { items, subtotal, shipping, total };
+}
+
+function renderCart() {
+  const { items, subtotal, shipping, total } = getCartDetails();
+  const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0);
+
+  cartCount.textContent = String(totalQuantity);
+  cartTotalLabel.textContent = currencyFormatter.format(total / 100);
+  subtotalValue.textContent = currencyFormatter.format(subtotal / 100);
+  shippingValue.textContent = currencyFormatter.format(shipping / 100);
+  totalValue.textContent = currencyFormatter.format(total / 100);
+
+  if (!items.length) {
+    cartItems.innerHTML = '<p class="empty-cart">Your cart is empty.</p>';
+    return;
+  }
+
+  cartItems.innerHTML = items
+    .map(
+      (item) => `
+        <div class="cart-item">
+          <div>
+            <h4>${item.name}</h4>
+            <p>${item.size}</p>
+          </div>
+          <div class="cart-quantity">
+            <button aria-label="Decrease quantity" data-action="decrease" data-id="${item.id}">−</button>
+            <span>${item.quantity}</span>
+            <button aria-label="Increase quantity" data-action="increase" data-id="${item.id}">+</button>
+          </div>
+          <strong>${currencyFormatter.format((item.price * item.quantity) / 100)}</strong>
+        </div>
+      `
+    )
+    .join('');
+
+  cartItems.querySelectorAll('button[data-action]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const productId = Number(button.dataset.id);
+      const action = button.dataset.action;
+      updateQuantity(productId, action === 'increase' ? 1 : -1);
+    });
+  });
+}
+
+checkoutForm.addEventListener('submit', (event) => {
+  event.preventDefault();
+
+  const { items, total } = getCartDetails();
+
+  if (!items.length) {
+    formMessage.textContent = 'Please add at least one item before checking out.';
+    formMessage.style.color = '#b91c1c';
+    return;
+  }
+
+  const name = document.getElementById('customerName').value.trim();
+  const email = document.getElementById('customerEmail').value.trim();
+  const address = document.getElementById('customerAddress').value.trim();
+
+  if (!name || !email || !address) {
+    formMessage.textContent = 'Please complete your name, email, and delivery address.';
+    formMessage.style.color = '#b91c1c';
+    return;
+  }
+
+  formMessage.textContent = `Thank you, ${name}! Your order total is ${currencyFormatter.format(total / 100)} and a confirmation will be sent to ${email}.`;
+  formMessage.style.color = '#166534';
+
+  localStorage.removeItem(cartKey);
+  checkoutForm.reset();
+  renderCart();
+  renderProducts();
+});
+
+document.getElementById('cartButton').addEventListener('click', () => {
+  document.getElementById('checkout').scrollIntoView({ behavior: 'smooth' });
+});
+
+renderProducts();
+renderCart();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+style.css
